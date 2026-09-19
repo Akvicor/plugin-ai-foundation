@@ -274,6 +274,16 @@ defineExpose({
       :value="formState?.proxyPort"
     />
 
+    <FormKit
+      type="number"
+      number
+      name="maxInMemorySize"
+      label="响应缓冲上限（字节）"
+      placeholder="可选，默认 262144"
+      help="供应商单次响应的内存缓冲上限。图片生成等返回 base64 大图的供应商可调大，例如 8388608（8 MB）"
+      :value="formState?.maxInMemorySize"
+    />
+
     <AdvancedSettingsCollapsible
       v-if="selectedProviderType?.parameterDefinitions?.length"
       title="参数映射"

@@ -66,6 +66,12 @@ export interface AiProviderSpec {
      */
     'imageEndpointPath'?: string;
     /**
+     * In-memory buffer limit in bytes for this provider\'s response bodies (optional)
+     * @type {number}
+     * @memberof AiProviderSpec
+     */
+    'maxInMemorySize'?: number;
+    /**
      * 
      * @type {ModelParameterMappings}
      * @memberof AiProviderSpec

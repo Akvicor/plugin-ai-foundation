@@ -20,6 +20,15 @@ public final class ProviderHttpClientFactory {
     public static final int CONNECT_TIMEOUT_MILLIS = 10_000;
     public static final int DISCOVERY_MAX_IN_MEMORY_SIZE = 8 * 1024 * 1024;
 
+    /**
+     * Default in-memory buffer for provider response bodies, matching Spring's 256 KB default.
+     *
+     * <p>Image-generation responses that inline base64 images exceed this limit (a single image
+     * can be several megabytes) and fail with a {@code DataBufferLimitException}. Providers that
+     * return such payloads can raise the limit through {@code AiProvider.spec.maxInMemorySize}.
+     */
+    public static final int DEFAULT_MAX_IN_MEMORY_SIZE = 256 * 1024;
+
     private ProviderHttpClientFactory() {
     }
 
@@ -38,15 +47,29 @@ public final class ProviderHttpClientFactory {
     }
 
     public static WebClient.Builder webClientBuilder(AiProvider provider) {
-        return WebClient.builder()
-            .clientConnector(new ReactorClientHttpConnector(httpClient(provider)));
+        return webClientBuilder(provider, providerMaxInMemorySize(provider));
     }
 
     public static WebClient.Builder discoveryWebClientBuilder(AiProvider provider) {
-        return webClientBuilder(provider)
+        return webClientBuilder(provider, DISCOVERY_MAX_IN_MEMORY_SIZE);
+    }
+
+    /**
+     * Resolves the response buffer limit configured on the provider. A missing or non-positive
+     * {@code spec.maxInMemorySize} falls back to {@link #DEFAULT_MAX_IN_MEMORY_SIZE}.
+     */
+    static int providerMaxInMemorySize(AiProvider provider) {
+        var spec = provider != null ? provider.getSpec() : null;
+        var configured = spec != null ? spec.getMaxInMemorySize() : null;
+        return configured != null && configured > 0 ? configured : DEFAULT_MAX_IN_MEMORY_SIZE;
+    }
+
+    private static WebClient.Builder webClientBuilder(AiProvider provider, int maxInMemorySize) {
+        return WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(httpClient(provider)))
             .exchangeStrategies(ExchangeStrategies.builder()
                 .codecs(configurer -> configurer.defaultCodecs()
-                    .maxInMemorySize(DISCOVERY_MAX_IN_MEMORY_SIZE))
+                    .maxInMemorySize(maxInMemorySize))
                 .build());
     }
 
