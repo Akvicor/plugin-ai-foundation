@@ -17,43 +17,42 @@ import run.halo.app.extension.Metadata;
 class ProviderHttpClientFactoryTest {
 
     @Test
-    void defaultsToSpringDefaultLimit() {
-        assertThat(ProviderHttpClientFactory.providerMaxInMemorySize(provider(null)))
-            .isEqualTo(ProviderHttpClientFactory.DEFAULT_MAX_IN_MEMORY_SIZE)
-            .isEqualTo(256 * 1024);
-        assertThat(ProviderHttpClientFactory.providerMaxInMemorySize(null))
-            .isEqualTo(ProviderHttpClientFactory.DEFAULT_MAX_IN_MEMORY_SIZE);
+    void imageLimitDefaultsToSixtyFourMegabytes() {
+        assertThat(ProviderHttpClientFactory.imageMaxInMemorySize(provider(null)))
+            .isEqualTo(ProviderHttpClientFactory.IMAGE_DEFAULT_MAX_IN_MEMORY_SIZE)
+            .isEqualTo(64 * 1024 * 1024);
+        assertThat(ProviderHttpClientFactory.imageMaxInMemorySize(null))
+            .isEqualTo(ProviderHttpClientFactory.IMAGE_DEFAULT_MAX_IN_MEMORY_SIZE);
     }
 
     @Test
-    void honoursConfiguredLimit() {
-        assertThat(ProviderHttpClientFactory.providerMaxInMemorySize(provider(8 * 1024 * 1024)))
+    void imageLimitHonoursConfiguredLimit() {
+        assertThat(ProviderHttpClientFactory.imageMaxInMemorySize(provider(8 * 1024 * 1024)))
             .isEqualTo(8 * 1024 * 1024);
     }
 
     @Test
-    void fallsBackToDefaultForNonPositiveLimit() {
-        assertThat(ProviderHttpClientFactory.providerMaxInMemorySize(provider(0)))
-            .isEqualTo(ProviderHttpClientFactory.DEFAULT_MAX_IN_MEMORY_SIZE);
-        assertThat(ProviderHttpClientFactory.providerMaxInMemorySize(provider(-1)))
-            .isEqualTo(ProviderHttpClientFactory.DEFAULT_MAX_IN_MEMORY_SIZE);
+    void imageLimitFallsBackToDefaultForNonPositiveLimit() {
+        assertThat(ProviderHttpClientFactory.imageMaxInMemorySize(provider(0)))
+            .isEqualTo(ProviderHttpClientFactory.IMAGE_DEFAULT_MAX_IN_MEMORY_SIZE);
+        assertThat(ProviderHttpClientFactory.imageMaxInMemorySize(provider(-1)))
+            .isEqualTo(ProviderHttpClientFactory.IMAGE_DEFAULT_MAX_IN_MEMORY_SIZE);
     }
 
     @Test
-    void readsImageSizedResponseBodyWithConfiguredLimit() throws Exception {
-        // 1 MB base64 body: above the 256 KB default, readable once the provider raises its limit.
-        var provider = provider(8 * 1024 * 1024);
+    void imageBuilderReadsBodyBeyondSpringDefaultLimit() throws Exception {
+        // 1 MB base64 body: above Spring's 256 KB default, readable through the image builder.
         var payload = payloadOfLength(1_000_000);
         var server = startPayloadServer(payload);
         try {
-            assertThat(readBody(provider, server)).isEqualTo(payload);
+            assertThat(readBody(provider(null), server)).isEqualTo(payload);
         } finally {
             server.stop(0);
         }
     }
 
     @Test
-    void readsBodyJustUnderConfiguredLimit() throws Exception {
+    void imageBuilderReadsBodyJustUnderConfiguredLimit() throws Exception {
         var limit = 8 * 1024 * 1024;
         var provider = provider(limit);
         var payload = payloadOfLength(limit - 1024);
@@ -66,7 +65,7 @@ class ProviderHttpClientFactoryTest {
     }
 
     @Test
-    void rejectsBodyJustAboveConfiguredLimit() throws Exception {
+    void imageBuilderRejectsBodyJustAboveConfiguredLimit() throws Exception {
         var limit = 8 * 1024 * 1024;
         var provider = provider(limit);
         var server = startPayloadServer(payloadOfLength(limit + 1024));
@@ -88,7 +87,7 @@ class ProviderHttpClientFactoryTest {
     }
 
     private static WebClient clientFor(AiProvider provider, HttpServer server) {
-        return ProviderHttpClientFactory.webClientBuilder(provider)
+        return ProviderHttpClientFactory.imageWebClientBuilder(provider)
             .baseUrl("http://127.0.0.1:" + server.getAddress().getPort())
             .build();
     }

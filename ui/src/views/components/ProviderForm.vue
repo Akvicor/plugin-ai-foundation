@@ -278,9 +278,9 @@ defineExpose({
       type="number"
       number
       name="maxInMemorySize"
-      label="响应缓冲上限（字节）"
-      placeholder="可选，默认 262144"
-      help="供应商单次响应的内存缓冲上限。图片生成等返回 base64 大图的供应商可调大，例如 8388608（8 MB）"
+      label="图片响应缓冲上限（字节）"
+      placeholder="可选，默认 67108864（64 MB）"
+      help="图片生成响应的内存缓冲上限。默认 64 MB，一般无需修改；返回超大图片的供应商可继续调大"
       :value="formState?.maxInMemorySize"
     />
 

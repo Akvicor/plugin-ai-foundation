@@ -1517,7 +1517,7 @@
           },
           "maxInMemorySize" : {
             "type" : "integer",
-            "description" : "In-memory buffer limit in bytes for this provider's response bodies (optional)",
+            "description" : "In-memory buffer limit in bytes for image generation responses (optional, defaults to 64 MB)",
             "format" : "int32"
           },
           "parameterMappings" : {

@@ -66,7 +66,7 @@ export interface AiProviderSpec {
      */
     'imageEndpointPath'?: string;
     /**
-     * In-memory buffer limit in bytes for this provider\'s response bodies (optional)
+     * In-memory buffer limit in bytes for image generation responses (optional, defaults to 64 MB)
      * @type {number}
      * @memberof AiProviderSpec
      */
